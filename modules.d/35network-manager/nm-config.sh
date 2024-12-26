@@ -1,6 +1,6 @@
 #!/bin/sh
 
-command -v nm_generate_connections > /dev/null || . /lib/nm-lib.sh
+command -v getargbool > /dev/null || . /lib/dracut-lib.sh
 
 if [ -n "$netroot" ] || [ -e /tmp/net.ifaces ]; then
     echo rd.neednet >> /etc/cmdline.d/35-neednet.conf
@@ -32,4 +32,7 @@ EOF
     fi
 fi
 
-nm_generate_connections
+if ! [ -e /usr/lib/systemd/system/nm-config-initrd.service ]; then
+    command -v nm_generate_connections > /dev/null || . /lib/nm-lib.sh
+    nm_generate_connections
+fi

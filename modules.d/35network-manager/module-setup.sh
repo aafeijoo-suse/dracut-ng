@@ -48,8 +48,22 @@ install() {
         # "Wired connection #" DHCP connections for Ethernet interfaces
         inst_simple "$moddir"/initrd-no-auto-default.conf /usr/lib/NetworkManager/conf.d/
 
-        inst_simple "$moddir"/nm-initrd.service "$systemdsystemunitdir"/nm-initrd.service
-        inst_simple "$moddir"/nm-wait-online-initrd.service "$systemdsystemunitdir"/nm-wait-online-initrd.service
+        # Install systemd service units
+        if [[ -e "$systemdsystemunitdir"/nm-config-initrd.service ]]; then
+            # NetworkManager-1.52 provides its own initrd services
+            inst_multiple -o \
+                "$systemdsystemunitdir"/nm-config-initrd.service \
+                "$systemdsystemunitdir"/nm-initrd.service \
+                "$systemdsystemunitdir"/nm-wait-online-initrd.service
+
+            # dracut specific dropins to override upstream services
+            inst_simple "$moddir/nm-config-initrd-dracut.conf" "$systemdsystemunitdir/nm-config-initrd.service.d/nm-config-initrd-dracut.conf"
+            inst_simple "$moddir/nm-wait-online-initrd-dracut.conf" "$systemdsystemunitdir/nm-wait-online-initrd.service.d/nm-wait-online-initrd-dracut.conf"
+        else
+            #TODO: remove custom systemd services when NetworkManager-1.52 is the minimum supported version
+            inst_simple "$moddir"/nm-initrd.service "$systemdsystemunitdir"/nm-initrd.service
+            inst_simple "$moddir"/nm-wait-online-initrd.service "$systemdsystemunitdir"/nm-wait-online-initrd.service
+        fi
 
         # Adding default link and (if exists) 98-default-mac-none.link
         inst_multiple -o \

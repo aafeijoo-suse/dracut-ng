@@ -35,8 +35,12 @@ IFACES="$IFACES $DEVICE"
 echo "$IFACES" >> /tmp/net.ifaces
 
 if [ -x /usr/libexec/nm-initrd-generator ] || [ -x /usr/lib/nm-initrd-generator ]; then
-    command -v nm_generate_connections > /dev/null || . /lib/nm-lib.sh
-    nm_generate_connections
+    command -v nm_reload_connections > /dev/null || . /lib/nm-lib.sh
+    if [ -e /usr/lib/systemd/system/nm-config-initrd.service ]; then
+        systemctl restart nm-config-initrd.service
+    else
+        nm_generate_connections
+    fi
     nm_reload_connections
 else
     exec ifup "$DEVICE"
